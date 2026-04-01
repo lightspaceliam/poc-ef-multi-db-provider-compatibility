@@ -46,7 +46,7 @@ In Terminal, PowerShell cd into: {your-directory}/poc-database-entity-framework/
 dotnet ef database update
 ```
 
-![Schema diagram](/POC.Database.EntityFramework/Assets/schema-diagram.png)
+![Schema diagram](./Assets/schema-diagram.png)
 
 1. a trial can have 0, 1 or many criteria
 2. a criteria must have 1 trial
