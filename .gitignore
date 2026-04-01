@@ -1,0 +1,13 @@
+# .NET
+.vs
+obj
+bin
+**/**.user
+
+# Rider
+.idea
+
+# Apple
+.DS_Store
+
+# Other

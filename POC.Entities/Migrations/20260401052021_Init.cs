@@ -1,0 +1,76 @@
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+
+#nullable disable
+
+namespace POC.Entities.Migrations
+{
+    /// <inheritdoc />
+    public partial class Init : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AlterDatabase()
+                .Annotation("Npgsql:Enum:public.criteria_types", "Inclusion,Exclusion,Mainevent");
+
+            migrationBuilder.CreateTable(
+                name: "trials",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
+                    start_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    end_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_trials", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "criterion",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    description = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true),
+                    type = table.Column<int>(type: "criteria_types", nullable: false),
+                    trial_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("trial_pkey", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_criterion_trials_trial_id",
+                        column: x => x.trial_id,
+                        principalTable: "trials",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_criterion_trial_id",
+                table: "criterion",
+                column: "trial_id");
+
+            migrationBuilder.CreateIndex(
+                name: "unique_criteria_trial_id_criteria_type",
+                table: "criterion",
+                columns: new[] { "type", "trial_id" },
+                unique: true);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(
+                name: "criterion");
+
+            migrationBuilder.DropTable(
+                name: "trials");
+        }
+    }
+}
