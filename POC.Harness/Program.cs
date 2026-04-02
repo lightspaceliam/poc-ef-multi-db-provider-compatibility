@@ -7,6 +7,7 @@ using POC.Entities.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using POC.Entities;
+using POC.Harness.Data;
 using POC.Harness.Services;
 
 Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
@@ -45,12 +46,12 @@ var host = Host.CreateDefaultBuilder(args)
          * Local connection sting only. Demo purposes, never store database connection strings in code.
          * .NET provides many secure alternatives: UserSecrets, Environment Variables and more.
          */
-        const string connectionString =
+        const string pgSqlconnectionString =
             "Host=localhost;Port=5432;Database=optimiser_pg_db_context;Username=postgres;Password=YourPassword123;";
-        services.AddDbContext<OptimiserPgDbContext>(options =>
+        services.AddDbContext<OptimiserPgSqlDbContext>(options =>
         {
             options.UseNpgsql(
-                connectionString,
+                pgSqlconnectionString,
                 npgsqlOptions =>
                 {
                     npgsqlOptions.EnableRetryOnFailure(
@@ -59,105 +60,158 @@ var host = Host.CreateDefaultBuilder(args)
                         errorCodesToAdd: null);
                 });
         });
-
-        // No UseNpgsql here — OnConfiguring in TrialPgDbContext owns the connection string.
-        // It resolves it via _tenantService.tenant.TrialDbConnectionString, which
         
-        services.AddScoped<TrialEntityService>();
+        const string mySqlconnectionString =
+            "Server=localhost;Port=3306;Database=OptimiserMySqlDbContext;Uid=root;Pwd=YourSecurePassword123;";
+        services.AddDbContext<OptimiserMySqlDbContext>(options =>
+        {
+            options.UseMySql(
+                mySqlconnectionString,
+                ServerVersion.AutoDetect(mySqlconnectionString),
+                mysqlOptions => mysqlOptions.EnableRetryOnFailure());
+        });
+        
+        services.AddScoped<PgSqlTrialEntityService>();
+        services.AddScoped<MySqlTrialEntityService>();
         
     })
     .Build();
 
 using var scope = host.Services.CreateScope();
-var trialEntityService = scope.ServiceProvider.GetRequiredService<TrialEntityService>();
-const bool runCreate = false;
-const bool runReadAllTrials = false;
-const bool runReadAllWithCriterion = false;
-const bool runAttemptInsertWithDuplicate = true;
+var pgSqlTrialEntityService = scope.ServiceProvider.GetRequiredService<PgSqlTrialEntityService>();
+var mySqlTrialEntityService = scope.ServiceProvider.GetRequiredService<MySqlTrialEntityService>();
 
-#region Create
+const bool pgSqlRunCreate = false;
+const bool pgSqlRunReadAllTrials = false;
+const bool pgSqlRunReadAllWithCriterion = false;
+const bool pgSqlRunAttemptInsertWithDuplicate = false;
 
-if (runCreate)
+const bool mySqlRunCreate = false;
+const bool mySqlRunReadAllTrials = false;
+const bool mySqlRunReadAllWithCriterion = false;
+const bool mySqlRunAttemptInsertWithDuplicate = false;
+
+#region PostgreSql Create
+
+if (pgSqlRunCreate)
 {
-    var trials = new List<Trial>
+    foreach (var trial in nameof(OptimiserPgSqlDbContext).TrialsData())
     {
-        new Trial
-        {
-            Name = "Trial One",
-            StartDate = DateTime.SpecifyKind(DateTime.Parse("2026-04-01 09:00:00"), DateTimeKind.Utc),
-            EndDate = DateTime.SpecifyKind(DateTime.Parse("2026-04-01 10:00:00"), DateTimeKind.Utc),
-            Criterion = new List<Criteria>
-            {
-                new Criteria{ Description = $"{nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Mainevent)}", Type = CriteriaTypes.Mainevent },
-                new Criteria{ Description = $"{nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Inclusion)}", Type = CriteriaTypes.Inclusion },
-                new Criteria{ Description = $"{nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Exclusion)}", Type = CriteriaTypes.Exclusion },
-            }
-        },
-        new Trial
-        {
-            Name = "Trial Two",
-            StartDate = DateTime.SpecifyKind(DateTime.Parse("2026-04-01 11:00:00"), DateTimeKind.Utc),
-            EndDate = DateTime.SpecifyKind(DateTime.Parse("2026-04-02 11:30:00"), DateTimeKind.Utc),
-            Criterion = new List<Criteria>
-            {
-                new Criteria{ Description = $"{nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Mainevent)}", Type = CriteriaTypes.Mainevent },
-                new Criteria{ Description = $"{nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Inclusion)}", Type = CriteriaTypes.Inclusion }
-            }
-        }
-    };
-
-    foreach (var trial in trials)
-    {
-        await trialEntityService.CreateAsync(trial);
+        await pgSqlTrialEntityService.CreateAsync(trial);
     }
 }
 
-#endregion Create
+#endregion
 
-#region Read All Trials
+#region MySql Create
 
-if (runReadAllTrials)
+if (mySqlRunCreate)
 {
-    var trials = await trialEntityService.ReadAllAsync();
-
-    trials.ForEach(trial =>
+    foreach (var trial in nameof(OptimiserMySqlDbContext).TrialsData())
     {
-        Console.WriteLine($"Trial name: {trial.Name} Criterion: {trial.Criterion.Count}");
+        await mySqlTrialEntityService.CreateAsync(trial);
+    }
+}
+
+#endregion
+
+#region PostgreSql Read All Trials
+
+if (pgSqlRunReadAllTrials)
+{
+    var pgSqlTrials = await pgSqlTrialEntityService.ReadAllAsync();
+
+    pgSqlTrials.ForEach(trial =>
+    {
+        Console.WriteLine($"PgSql - Trial name: {trial.Name} Criterion: {trial.Criterion.Count}");
     });
 }
-#endregion All Trials
+#endregion
 
-#region Read All Trials With Criterion
+#region MySql Read All Trials
 
-if (runReadAllWithCriterion)
+if (mySqlRunReadAllTrials)
 {
-    var trials = await trialEntityService.ReadAllWithCriterionAsync();
+    var mySqlTrials = await mySqlTrialEntityService.ReadAllAsync();
 
-    trials.ForEach(trial =>
+    mySqlTrials.ForEach(trial =>
     {
-        Console.WriteLine($"Trial name: {trial.Name} Criterion: {trial.Criterion.Count}");
+        Console.WriteLine($"MySql - Trial name: {trial.Name} Criterion: {trial.Criterion.Count}");
     });
 }
-#endregion All Trials With Criterion
+#endregion
 
-#region Attempt Insert With Duplicate
+#region PostgreSql Read All Trials With Criterion
 
-if (runAttemptInsertWithDuplicate)
+if (pgSqlRunReadAllWithCriterion)
 {
-    var trial = await trialEntityService.FindTrialByNamAsync("Trial One");
+    var pgSqlTrials = await pgSqlTrialEntityService.ReadAllWithCriterionAsync();
 
-    if (trial == null)
+    pgSqlTrials.ForEach(trial =>
     {
-        Console.WriteLine("Trial One not found");
+        Console.WriteLine($"PgSql - Trial name: {trial.Name} Criterion: {trial.Criterion.Count}");
+    });
+}
+#endregion
+
+#region MySql Read All Trials With Criterion
+
+if (mySqlRunReadAllWithCriterion)
+{
+    var mySqlTrials = await mySqlTrialEntityService.ReadAllWithCriterionAsync();
+
+    mySqlTrials.ForEach(trial =>
+    {
+        Console.WriteLine($"MySql - Trial name: {trial.Name} Criterion: {trial.Criterion.Count}");
+    });
+}
+#endregion
+
+#region PostgreSql Attempt Insert With Duplicate Type
+
+//  Expecting:  23505: duplicate key value violates unique constraint "unique_criteria_trial_id_criteria_type"
+
+if (pgSqlRunAttemptInsertWithDuplicate)
+{
+    var pgSqlTrial = await pgSqlTrialEntityService.FindTrialByNamAsync($"Trial One - Db: {nameof(OptimiserPgSqlDbContext)}");
+
+    if (pgSqlTrial == null)
+    {
+        Console.WriteLine("PgSql - Trial One not found");
         return;
     }
-    var trialId = trial.Id;
-    var criteria = new Criteria
+    var trialId = pgSqlTrial.Id;
+    var pgSqlCriteria = new Criteria
     {
         Description = $"{nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Mainevent)}",
-        Type = CriteriaTypes.Mainevent
+        Type = CriteriaTypes.Mainevent,
+        TrialId = trialId
     };
-    await trialEntityService.CreateCriteriaAsync(criteria);
+    await pgSqlTrialEntityService.CreateCriteriaAsync(pgSqlCriteria);
+}
+#endregion Attempt Insert With Duplicate
+
+#region MySql Attempt Insert With Duplicate Type
+
+//  Expecting:  23505: duplicate key value violates unique constraint "unique_criteria_trial_id_criteria_type"
+
+if (mySqlRunAttemptInsertWithDuplicate)
+{
+    var mySqlTrial = await mySqlTrialEntityService.FindTrialByNamAsync($"Trial One - Db: {nameof(OptimiserMySqlDbContext)}");
+
+    if (mySqlTrial == null)
+    {
+        Console.WriteLine("MySql Trial One not found");
+        return;
+    }
+    var trialId = mySqlTrial.Id;
+    var mySqlCriteria = new Criteria
+    {
+        Description = $"{nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Mainevent)}",
+        Type = CriteriaTypes.Mainevent,
+        TrialId = trialId
+    };
+    await mySqlTrialEntityService.CreateCriteriaAsync(mySqlCriteria);
 }
 #endregion Attempt Insert With Duplicate
 

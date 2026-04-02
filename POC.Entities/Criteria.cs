@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 using NpgsqlTypes;
 using POC.Entities.Abstract;
 
@@ -12,7 +11,6 @@ public enum CriteriaTypes
     [PgName("Mainevent")]  Mainevent,
 }
 
-[Table("criterion")]
 public class Criteria : EntityBase
 {
     /// <summary>
@@ -22,9 +20,8 @@ public class Criteria : EntityBase
     ///     Max length of 4000 characters
     /// </summary>
     [StringLength(4000, ErrorMessage = "Description exceeds {1} characters")]
-    [Column("description")]
     public string? Description { get; set; }
-    
+
     /// <summary>
     /// Type
     /// Constraints:
@@ -32,12 +29,10 @@ public class Criteria : EntityBase
     ///     Accepts only: Inclusion, Exclusion, Mainevent
     /// </summary>
     [Required(ErrorMessage = "Type is required")]
-    [Column("type")]
     public CriteriaTypes Type { get; set; }
-    
+
     //  Navigational Properties.
-    
-    //  
+
     /// <summary>
     /// Foreign Key
     ///     references Trial.Id
@@ -45,7 +40,6 @@ public class Criteria : EntityBase
     ///     Required and must reference an existing trial primary key
     /// </summary>
     [Required(ErrorMessage = "Trial is required")]
-    [Column("trial_id")]
     public int TrialId { get; set; }
     public Trial Trial { get; set; }
 }

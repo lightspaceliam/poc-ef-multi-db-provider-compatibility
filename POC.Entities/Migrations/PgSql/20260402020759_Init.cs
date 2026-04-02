@@ -1,10 +1,11 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using POC.Entities;
 
 #nullable disable
 
-namespace POC.Entities.Migrations
+namespace POC.Entities.Migrations.PgSql
 {
     /// <inheritdoc />
     public partial class Init : Migration
@@ -31,20 +32,20 @@ namespace POC.Entities.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "criterion",
+                name: "criterias",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     description = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true),
-                    type = table.Column<int>(type: "criteria_types", nullable: false),
+                    type = table.Column<CriteriaTypes>(type: "criteria_types", nullable: false),
                     trial_id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("trial_pkey", x => x.id);
                     table.ForeignKey(
-                        name: "FK_criterion_trials_trial_id",
+                        name: "FK_criterias_trials_trial_id",
                         column: x => x.trial_id,
                         principalTable: "trials",
                         principalColumn: "id",
@@ -52,13 +53,13 @@ namespace POC.Entities.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_criterion_trial_id",
-                table: "criterion",
+                name: "IX_criterias_trial_id",
+                table: "criterias",
                 column: "trial_id");
 
             migrationBuilder.CreateIndex(
-                name: "unique_criteria_trial_id_criteria_type",
-                table: "criterion",
+                name: "unique_pgsql_criteria_trial_id_criteria_type",
+                table: "criterias",
                 columns: new[] { "type", "trial_id" },
                 unique: true);
         }
@@ -67,7 +68,7 @@ namespace POC.Entities.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "criterion");
+                name: "criterias");
 
             migrationBuilder.DropTable(
                 name: "trials");

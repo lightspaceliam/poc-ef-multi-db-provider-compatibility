@@ -7,14 +7,14 @@ using POC.Entities.DbContexts;
 
 namespace POC.Harness.Services;
 
-public class TrialEntityService
+public class PgSqlTrialEntityService
 {
-    private readonly OptimiserPgDbContext _context;
-    private readonly ILogger<TrialEntityService> _logger;
+    private readonly OptimiserPgSqlDbContext _context;
+    private readonly ILogger<PgSqlTrialEntityService> _logger;
 
-    public TrialEntityService(
-        OptimiserPgDbContext context,
-        ILogger<TrialEntityService> logger)
+    public PgSqlTrialEntityService(
+        OptimiserPgSqlDbContext context,
+        ILogger<PgSqlTrialEntityService> logger)
     {
         _context = context;
         _logger = logger;

@@ -9,5 +9,10 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.11" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.11" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.11" />
+        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="7.0.0" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Migrations\MySql\" />
+      <Folder Include="Migrations\PgSql\" />
     </ItemGroup>
 </Project>

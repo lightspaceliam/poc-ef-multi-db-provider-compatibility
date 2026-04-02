@@ -2,21 +2,19 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using POC.Entities;
 using POC.Entities.DbContexts;
 
 #nullable disable
 
-namespace POC.Entities.Migrations
+namespace POC.Entities.Migrations.PgSql
 {
-    [DbContext(typeof(OptimiserPgDbContext))]
-    [Migration("20260401052021_Init")]
-    partial class Init
+    [DbContext(typeof(OptimiserPgSqlDbContext))]
+    partial class OptimiserPgSqlDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,7 +42,7 @@ namespace POC.Entities.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("trial_id");
 
-                    b.Property<int>("Type")
+                    b.Property<CriteriaTypes>("Type")
                         .HasColumnType("criteria_types")
                         .HasColumnName("type");
 
@@ -55,9 +53,9 @@ namespace POC.Entities.Migrations
 
                     b.HasIndex("Type", "TrialId")
                         .IsUnique()
-                        .HasDatabaseName("unique_criteria_trial_id_criteria_type");
+                        .HasDatabaseName("unique_pgsql_criteria_trial_id_criteria_type");
 
-                    b.ToTable("criterion");
+                    b.ToTable("criterias", (string)null);
                 });
 
             modelBuilder.Entity("POC.Entities.Trial", b =>
@@ -85,7 +83,7 @@ namespace POC.Entities.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("trials");
+                    b.ToTable("trials", (string)null);
                 });
 
             modelBuilder.Entity("POC.Entities.Criteria", b =>
