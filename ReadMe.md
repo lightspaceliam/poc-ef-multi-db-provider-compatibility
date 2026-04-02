@@ -10,7 +10,9 @@
 
 ### PostgreSql
 
-> New for me: everything in lowercase unless you want to wrap double quotes around everything.
+> Case Sensitivity 
+
+New for me: everything in lowercase unless you want to wrap double quotes around everything.
 
 ```sql
 SELECT  *
@@ -23,7 +25,7 @@ SELECT 	id
 FROM    criterion;
 ```
 
-> Double quotes for qualifying a string, not []
+> String Qualifier - Double quotes for, not []
 
 - MS SQL: []
 - Pg SQL: ""
@@ -39,17 +41,64 @@ FROM    criterion;
 
 ### MySql
 
+> Case Sensitivity
+
+You can use whatever case you want.
+
+```sql
+SELECT 	Id 
+		, `Name` 
+		, StartDate 
+		, EndDate
+FROM 	Trials
+```
+
+> String Qualifier - `MyString` for, not []
+
+- MS SQL: []
+- My SQL: ``
+
+## Getting Started
+
+This solution requires access to two database server types:
+
+- MySql
+- PostgreSql
+
+I'm using Docker to host both servers. Connection strings are in the codebase in plain text, local connections only.
+
+Please ensure both servers are available and work with the specified connection strings or update to what works for you.
+
+Connection strings are stored:
+
+- POC.Harness\Program.cs
+- POC.Entities\DbContexts\OptimiserMySqlDbContextFactory.cs
+- POC.Entities\DbContexts\OptimiserPgDbContextFactory.cs
+
+You will need .NET's EF CLI 7.2 or higher installed and run EF CLI commands:
+
+```bash
+# install if not already installed 
+dotnet tool install --global dotnet-ef --version 7.0.11
+
+# Create the database and schema
+dotnet ef database update --context OptimiserPgSqlDbContext
+dotnet ef database update --context OptimiserMySqlDbContext
+```
+
+Highly recommend you install https://dbeaver.io/ to read both database schemas.
+
 ## EF CLI Commands
 
 In Terminal, PowerShell cd into: {your-directory}/poc-database-entity-framework/POC.Entities/
 
 ```bash
-dotnet ef migrations add Init --context OptimiserPgDbContext --output-dir Migrations/PgSql
+dotnet ef migrations add Init --context OptimiserPgSqlDbContext --output-dir Migrations/PgSql
 
 dotnet ef migrations add Init --context OptimiserMySqlDbContext --output-dir Migrations/MySql
 
 # Add the database and schema based on the connection string in /POC.Entities\DbContexts\OptimiserPgDbContextFactory.cs
-dotnet ef database update --context OptimiserPgDbContext
+dotnet ef database update --context OptimiserPgSqlDbContext
 dotnet ef database update --context OptimiserMySqlDbContext
 ```
 
@@ -61,7 +110,7 @@ dotnet ef database update --context OptimiserMySqlDbContext
 
 ## Entity Framework Strategies
 
-In this strategy we will be focusing on Entity Framework and the databases it is compatible with.
+In this strategy we will be focusing on Entity Framework and the databases Sanro is working with: MySql and PostgreSql.
 
 With Entity Framework and other Object Relational Mapping (ORM) frameworks there a a couple of common concepts:
 
