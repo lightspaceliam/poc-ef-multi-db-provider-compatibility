@@ -2,11 +2,14 @@
 
 ## Tech Stack
 
-- Entity Framework
-- PostgreSql
-- .NET 6
+- Entity Framework 7.0.11
+- PostgreSql latest
+- MySql latest
+- .NET 6 - we need to update
 
 ## Conventions
+
+I've ALWAYS used MS SQL Server so I've listed some nuances I've come across when working with PostgreSql and MySql.
 
 ### PostgreSql
 
@@ -25,7 +28,7 @@ SELECT 	id
 FROM    criterion;
 ```
 
-> String Qualifier - Double quotes for, not []
+> String Qualifier - "Double-Quotes"
 
 - MS SQL: []
 - Pg SQL: ""
@@ -53,9 +56,9 @@ SELECT 	Id
 FROM 	Trials
 ```
 
-> String Qualifier - `MyString` for, not []
+> String Qualifier - `Backtick`
 
-- MS SQL: []
+
 - My SQL: ``
 
 ## Getting Started
@@ -160,3 +163,32 @@ The annotations [Key] and [DatabaseGenerated(DatabaseGeneratedOption.Identity)] 
 | MySQL | Pomelo.EntityFrameworkCore.MySql | INT AUTO_INCREMENT |
 
 In this project both the MySQL and PostgreSQL contexts have their own concrete OnModelCreating implementations to handle anything the annotation layer cannot express — such as provider-specific enum types, index naming conventions, or custom column types. The data annotation on EntityBase.Id covers the common case; the Fluent API fills in the gaps.
+
+## Docker
+
+Install both MySql and PostgreSql servers in your local Docker instance.
+
+```bash
+# MySql
+
+## Pull latest MySQL
+docker pull mysql:latest
+
+## Run it
+docker run --name mysql-dev-server \
+  -e MYSQL_ROOT_PASSWORD=YourSecurePassword123 \
+  -p 3306:3306 \
+  -d mysql:latest
+
+# PostgreSql
+
+## Pull latest PostgreSQL
+docker pull postgres:latest
+
+## Run it
+docker run --name postgres-dev-sever \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=YourSecurePassword123 \
+  -p 5432:5432 \
+  -d postgres:latest
+```
