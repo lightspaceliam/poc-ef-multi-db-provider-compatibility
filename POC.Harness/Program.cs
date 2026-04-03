@@ -47,7 +47,7 @@ var host = Host.CreateDefaultBuilder(args)
          * .NET provides many secure alternatives: UserSecrets, Environment Variables and more.
          */
         const string pgSqlconnectionString =
-            "Host=localhost;Port=5432;Database=optimiser_pg_db_context;Username=postgres;Password=YourPassword123;";
+            "Host=localhost;Port=5432;Database=optimiser_pg_db_context;Username=postgres;Password=YourSecurePassword123;";
         services.AddDbContext<OptimiserPgSqlDbContext>(options =>
         {
             options.UseNpgsql(

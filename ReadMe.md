@@ -2,14 +2,21 @@
 
 ## Tech Stack
 
-- Entity Framework 7.0.11
-- PostgreSql latest
-- MySql latest
-- .NET 6 - we need to update
+- Entity Framework 9.0.11
+- PostgreSql 9.0.11
+- MySql latest 9.0.4
+- .NET 9.0
+
+**Compatibility Constraints:**
+
+- Pomelo.EntityFrameworkCore.MySql 9.0.0 works with is .NET 8 LTS or 9.
+- Npgsql.EntityFrameworkCore.PostgreSQL is compatible with .NET 10
+
+Based on the above, I'm opting for .NET 9.
 
 ## Conventions
 
-I've ALWAYS used MS SQL Server so I've listed some nuances I've come across when working with PostgreSql and MySql.
+I've **ALWAYS** used MS SQL Server so I've listed some nuances I've come across when working with PostgreSql and MySql.
 
 ### PostgreSql
 
@@ -18,28 +25,22 @@ I've ALWAYS used MS SQL Server so I've listed some nuances I've come across when
 New for me: everything in lowercase unless you want to wrap double quotes around everything.
 
 ```sql
+-- mixed case
 SELECT  *
 FROM    "MyTableName"
 
+--  lowercase
 SELECT 	id
 		, description
-		, type
-		, trial_id
-FROM    criterion;
+FROM    mytable;
 ```
 
 > String Qualifier - "Double-Quotes"
 
-- MS SQL: []
-- Pg SQL: ""
-
 ```sql
-
 SELECT 	id
-		, "description"
-		, "type"
-		, trial_id
-FROM    criterion;
+		  , "description"
+FROM    mytable;
 ```
 
 ### MySql
@@ -50,23 +51,25 @@ You can use whatever case you want.
 
 ```sql
 SELECT 	Id 
-		, `Name` 
-		, StartDate 
-		, EndDate
-FROM 	Trials
+		, Description
+FROM 	MyTable
 ```
 
 > String Qualifier - `Backtick`
 
 
-- My SQL: ``
+```sql
+SELECT 	Id 
+		, `Description`
+FROM 	MyTable
+```
 
 ## Getting Started
 
 This solution requires access to two database server types:
 
-- MySql
 - PostgreSql
+- MySql
 
 I'm using Docker to host both servers. Connection strings are in the codebase in plain text, local connections only.
 
@@ -78,25 +81,40 @@ Connection strings are stored:
 - POC.Entities\DbContexts\OptimiserMySqlDbContextFactory.cs
 - POC.Entities\DbContexts\OptimiserPgDbContextFactory.cs
 
-You will need .NET's EF CLI 7.2 or higher installed and run EF CLI commands:
+You will need .NET 9 and EF CLI 9.0.11 and run EF CLI commands:
+
+In this case I already had 10 installed and I needed to downgrade.
 
 ```bash
+# If you are using a newer version Also, check if there is a global.json in the solution root if encountering any issues
+dotnet tool uninstall --global dotnet-ef
+dotnet tool install --global dotnet-ef --version 9.0.11
+
+
 # install if not already installed 
-dotnet tool install --global dotnet-ef --version 7.0.11
+dotnet tool install --global dotnet-ef --version 9.0.11
+
 
 # Create the database and schema
 dotnet ef database update --context OptimiserPgSqlDbContext
 dotnet ef database update --context OptimiserMySqlDbContext
 ```
 
-Highly recommend you install https://dbeaver.io/ to read both database schemas.
+Highly recommend you install https://dbeaver.io/ to read both database schemas without having to swap IDE's.
 
-## EF CLI Commands
+## Entity Framework CLI Commands
+
+Generally there is only a single Fluent API in a project however, this composition was chosen to differentiate between MySql to PostgreSql.
 
 In Terminal, PowerShell cd into: {your-directory}/poc-database-entity-framework/POC.Entities/
 
 ```bash
+# Add a migration, select context and output directory
 dotnet ef migrations add Init --context OptimiserPgSqlDbContext --output-dir Migrations/PgSql
+
+# Remove a migration
+dotnet ef migrations remove --context OptimiserPgSqlDbContext
+
 
 dotnet ef migrations add Init --context OptimiserMySqlDbContext --output-dir Migrations/MySql
 
@@ -113,19 +131,20 @@ dotnet ef database update --context OptimiserMySqlDbContext
 
 ## Entity Framework Strategies
 
-In this strategy we will be focusing on Entity Framework and the databases Sanro is working with: MySql and PostgreSql.
+## Entity Framework Concepts
 
-With Entity Framework and other Object Relational Mapping (ORM) frameworks there a a couple of common concepts:
+This section focuses on Entity Framework's ability to work with multiple database providers beyond MS SQL Server, specifically MySQL and PostgreSQL.
 
-- Entity (MyTable) - the model that represents the database table (MyTable) in code
-- Constraints
-	- datatype
-	- required
-	- nullable 
-	- and more
-- FluentApi
+Entity Framework, like most Object Relational Mapping (ORM) frameworks, is built around a few fundamental concepts:
 
-You can apply these constraints via data annotations, FluentAPI or both however, some constraints are not available as data annotations.
+- **Entity** — a class that represents a database table in code (e.g., `MyTable`)
+- **Constraints** — rules applied to entity properties, such as:
+  - Data type
+  - Required / nullable
+  - And more
+- **Fluent API** — a programmatic, chainable approach to configuring entity mappings
+
+Constraints can be applied via **data annotations**, the **Fluent API**, or a combination of both. Note that some constraints are only available through the Fluent API and cannot be expressed as data annotations.
 
 **The Strategy:**
 
@@ -163,6 +182,34 @@ The annotations [Key] and [DatabaseGenerated(DatabaseGeneratedOption.Identity)] 
 | MySQL | Pomelo.EntityFrameworkCore.MySql | INT AUTO_INCREMENT |
 
 In this project both the MySQL and PostgreSQL contexts have their own concrete OnModelCreating implementations to handle anything the annotation layer cannot express — such as provider-specific enum types, index naming conventions, or custom column types. The data annotation on EntityBase.Id covers the common case; the Fluent API fills in the gaps.
+
+## Entity Framework Translations
+
+The most common question I hear when I talk about anything to do with EF is:
+
+*It would be interesting to see how EF translates the query to TSQL*
+
+
+```c#
+return await _context.Trials
+    .Include(p => p.Criterion)
+    .ToListAsync();
+```
+
+```sql
+--  PostgreSql
+SELECT t.id, t.end_date, t.name, t.start_date, c.id, c.description, c.trial_id, c.type
+      FROM trials AS t
+      LEFT JOIN criterias AS c ON t.id = c.trial_id
+      ORDER BY t.id
+
+--  MySql
+SELECT `t`.`Id`, `t`.`EndDate`, `t`.`Name`, `t`.`StartDate`, `c`.`id`, `c`.`Description`, `c`.`TrialId`, `c`.`Type`
+      FROM `Trials` AS `t`
+      LEFT JOIN `Criterion` AS `c` ON `t`.`Id` = `c`.`TrialId`
+      ORDER BY `t`.`Id`
+
+```
 
 ## Docker
 

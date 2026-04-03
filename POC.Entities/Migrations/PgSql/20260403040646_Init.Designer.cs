@@ -4,14 +4,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using POC.Entities.DbContexts;
 
 #nullable disable
 
-namespace POC.Entities.Migrations.MySql
+namespace POC.Entities.Migrations.PgSql
 {
-    [DbContext(typeof(OptimiserMySqlDbContext))]
-    [Migration("20260402020827_Init")]
+    [DbContext(typeof(OptimiserPgSqlDbContext))]
+    [Migration("20260403040646_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -19,26 +20,34 @@ namespace POC.Entities.Migrations.MySql
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.11")
-                .HasAnnotation("Relational:MaxIdentifierLength", 64);
+                .HasAnnotation("ProductVersion", "9.0.11")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("POC.Entities.Criteria", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
                         .HasMaxLength(4000)
-                        .HasColumnType("varchar(4000)");
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("description");
 
                     b.Property<int>("TrialId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer")
+                        .HasColumnName("trial_id");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("enum('Inclusion','Exclusion','Mainevent')");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("type");
 
                     b.HasKey("Id")
                         .HasName("trial_pkey");
@@ -47,31 +56,40 @@ namespace POC.Entities.Migrations.MySql
 
                     b.HasIndex("Type", "TrialId")
                         .IsUnique()
-                        .HasDatabaseName("unique_mysql_criteria_trial_id_criteria_type");
+                        .HasDatabaseName("unique_pgsql_criteria_trial_id_criteria_type");
 
-                    b.ToTable("Criterion");
+                    b.ToTable("criterias", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_criterias_type", "\"type\" IN ('Inclusion', 'Exclusion', 'Mainevent')");
+                        });
                 });
 
             modelBuilder.Entity("POC.Entities.Trial", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("end_date");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .HasColumnType("varchar(150)");
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("name");
 
                     b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("start_date");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Trials");
+                    b.ToTable("trials", (string)null);
                 });
 
             modelBuilder.Entity("POC.Entities.Criteria", b =>

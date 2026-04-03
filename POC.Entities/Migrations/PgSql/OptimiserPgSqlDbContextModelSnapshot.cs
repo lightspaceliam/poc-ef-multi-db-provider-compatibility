@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using POC.Entities;
 using POC.Entities.DbContexts;
 
 #nullable disable
@@ -18,10 +17,9 @@ namespace POC.Entities.Migrations.PgSql
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.11")
+                .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "criteria_types", new[] { "Inclusion", "Exclusion", "Mainevent" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("POC.Entities.Criteria", b =>
@@ -42,8 +40,10 @@ namespace POC.Entities.Migrations.PgSql
                         .HasColumnType("integer")
                         .HasColumnName("trial_id");
 
-                    b.Property<CriteriaTypes>("Type")
-                        .HasColumnType("criteria_types")
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("type");
 
                     b.HasKey("Id")
@@ -55,7 +55,10 @@ namespace POC.Entities.Migrations.PgSql
                         .IsUnique()
                         .HasDatabaseName("unique_pgsql_criteria_trial_id_criteria_type");
 
-                    b.ToTable("criterias", (string)null);
+                    b.ToTable("criterias", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_criterias_type", "\"type\" IN ('Inclusion', 'Exclusion', 'Mainevent')");
+                        });
                 });
 
             modelBuilder.Entity("POC.Entities.Trial", b =>

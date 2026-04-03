@@ -10,14 +10,13 @@ public class OptimiserPgDbContextFactory : IDesignTimeDbContextFactory<Optimiser
 {
     public OptimiserPgSqlDbContext CreateDbContext(string[] args)
     {
-        var optionsBuilder = new DbContextOptionsBuilder<OptimiserPgSqlDbContext>();
-        
         /*
          * Local connection sting only. Demo purposes, never store database connection strings in code.
-         * .NET provides many secure alternatives: UserSecrets, Environment Variables and more. 
+         * .NET provides many secure alternatives: UserSecrets, Environment Variables and more.
          */
-        const string connectionString = "Host=localhost;Port=5432;Database=optimiser_pg_db_context;Username=postgres;Password=YourPassword123;";
-        
+        const string connectionString = "Host=localhost;Port=5432;Database=optimiser_pg_db_context;Username=postgres;Password=YourSecurePassword123;";
+
+        var optionsBuilder = new DbContextOptionsBuilder<OptimiserPgSqlDbContext>();
         optionsBuilder.UseNpgsql(connectionString);
         return new OptimiserPgSqlDbContext(optionsBuilder.Options);
     }

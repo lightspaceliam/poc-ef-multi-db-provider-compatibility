@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace POC.Entities.DbContexts;
 
@@ -8,16 +7,6 @@ namespace POC.Entities.DbContexts;
 /// </summary>
 public class OptimiserPgSqlDbContext : DbContext
 {
-    // Register PostgreSQL native enum types once at startup so Npgsql
-    // knows how to read/write them across all connections.
-    // Also helps EF to add this to the {migration}.down
-    static OptimiserPgSqlDbContext()
-    {
-#pragma warning disable CS0618 // GlobalTypeMapper is deprecated in Npgsql 8+ but still valid in 7.x
-        NpgsqlConnection.GlobalTypeMapper.MapEnum<CriteriaTypes>("criteria_types");
-#pragma warning restore CS0618
-    }
-
     public OptimiserPgSqlDbContext(DbContextOptions<OptimiserPgSqlDbContext> options) : base(options)
     { }
 
@@ -29,8 +18,6 @@ public class OptimiserPgSqlDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasPostgresEnum<CriteriaTypes>("public", "criteria_types");
-
         modelBuilder.Entity<Trial>(entity =>
         {
             //  Override the default name and case of database table and columns.
@@ -48,7 +35,12 @@ public class OptimiserPgSqlDbContext : DbContext
         modelBuilder.Entity<Criteria>(entity =>
         {
             //  Override the default name and case of database table and columns.
-            entity.ToTable("criterias");
+            //  HasConversion<string>() stores the enum member name ("Inclusion", "Exclusion",
+            //  "Mainevent") as varchar — no native PG enum type required, keeping the approach
+            //  consistent with the MySql provider and entirely within OnModelCreating.
+            entity.ToTable("criterias", t => t.HasCheckConstraint(
+                "ck_criterias_type",
+                "\"type\" IN ('Inclusion', 'Exclusion', 'Mainevent')"));
             entity.Property(e => e.Id)
                 .HasColumnName("id");
             entity.HasKey(e => e.Id)
@@ -57,7 +49,8 @@ public class OptimiserPgSqlDbContext : DbContext
                 .HasColumnName("description");
             entity.Property(e => e.Type)
                 .HasColumnName("type")
-                .HasColumnType("criteria_types");
+                .HasConversion<string>()
+                .HasMaxLength(50);
             entity.Property(e => e.TrialId)
                 .HasColumnName("trial_id");
 
