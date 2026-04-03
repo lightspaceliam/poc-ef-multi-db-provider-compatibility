@@ -40,7 +40,7 @@ namespace POC.Entities.Migrations.PgSql
                 constraints: table =>
                 {
                     table.PrimaryKey("trial_pkey", x => x.id);
-                    table.CheckConstraint("ck_criterias_type", "\"type\" IN ('Inclusion', 'Exclusion', 'Mainevent')");
+                    table.CheckConstraint("ck_criterias_type", "\"type\" IN ('Inclusion', 'Exclusion', 'MainEvent')");
                     table.ForeignKey(
                         name: "FK_criterias_trials_trial_id",
                         column: x => x.trial_id,

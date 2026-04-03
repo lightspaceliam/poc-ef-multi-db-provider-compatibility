@@ -57,7 +57,7 @@ namespace POC.Entities.Migrations.PgSql
 
                     b.ToTable("criterias", null, t =>
                         {
-                            t.HasCheckConstraint("ck_criterias_type", "\"type\" IN ('Inclusion', 'Exclusion', 'Mainevent')");
+                            t.HasCheckConstraint("ck_criterias_type", "\"type\" IN ('Inclusion', 'Exclusion', 'MainEvent')");
                         });
                 });
 

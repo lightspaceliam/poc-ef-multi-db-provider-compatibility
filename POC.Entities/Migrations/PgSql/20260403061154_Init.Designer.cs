@@ -12,7 +12,7 @@ using POC.Entities.DbContexts;
 namespace POC.Entities.Migrations.PgSql
 {
     [DbContext(typeof(OptimiserPgSqlDbContext))]
-    [Migration("20260403040646_Init")]
+    [Migration("20260403061154_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -60,7 +60,7 @@ namespace POC.Entities.Migrations.PgSql
 
                     b.ToTable("criterias", null, t =>
                         {
-                            t.HasCheckConstraint("ck_criterias_type", "\"type\" IN ('Inclusion', 'Exclusion', 'Mainevent')");
+                            t.HasCheckConstraint("ck_criterias_type", "\"type\" IN ('Inclusion', 'Exclusion', 'MainEvent')");
                         });
                 });
 

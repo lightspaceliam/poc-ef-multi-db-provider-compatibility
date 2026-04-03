@@ -17,7 +17,7 @@ public static class SeedData
                 EndDate = DateTime.SpecifyKind(DateTime.Parse("2026-04-01 10:00:00"), DateTimeKind.Utc),
                 Criterion = new List<Criteria>
                 {
-                    new Criteria{ Description = $"Db: {providerName}, {nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Mainevent)}", Type = CriteriaTypes.Mainevent },
+                    new Criteria{ Description = $"Db: {providerName}, {nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.MainEvent)}", Type = CriteriaTypes.MainEvent },
                     new Criteria{ Description = $"Db: {providerName}, {nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Inclusion)}", Type = CriteriaTypes.Inclusion },
                     new Criteria{ Description = $"Db: {providerName}, {nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Exclusion)}", Type = CriteriaTypes.Exclusion },
                 }
@@ -29,7 +29,7 @@ public static class SeedData
                 EndDate = DateTime.SpecifyKind(DateTime.Parse("2026-04-02 11:30:00"), DateTimeKind.Utc),
                 Criterion = new List<Criteria>
                 {
-                    new Criteria{ Description = $"Db: {providerName}, {nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Mainevent)}", Type = CriteriaTypes.Mainevent },
+                    new Criteria{ Description = $"Db: {providerName}, {nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.MainEvent)}", Type = CriteriaTypes.MainEvent },
                     new Criteria{ Description = $"Db: {providerName}, {nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Inclusion)}", Type = CriteriaTypes.Inclusion }
                 }
             }

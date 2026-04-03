@@ -12,7 +12,7 @@ using POC.Entities.DbContexts;
 namespace POC.Entities.Migrations.MySql
 {
     [DbContext(typeof(OptimiserMySqlDbContext))]
-    [Migration("20260403031324_Init")]
+    [Migration("20260403061201_Init")]
     partial class Init
     {
         /// <inheritdoc />

@@ -83,12 +83,12 @@ var mySqlTrialEntityService = scope.ServiceProvider.GetRequiredService<MySqlTria
 
 const bool pgSqlRunCreate = false;
 const bool pgSqlRunReadAllTrials = false;
-const bool pgSqlRunReadAllWithCriterion = false;
+const bool pgSqlRunReadAllWithCriterion = true;
 const bool pgSqlRunAttemptInsertWithDuplicate = false;
 
 const bool mySqlRunCreate = false;
 const bool mySqlRunReadAllTrials = false;
-const bool mySqlRunReadAllWithCriterion = false;
+const bool mySqlRunReadAllWithCriterion = true;
 const bool mySqlRunAttemptInsertWithDuplicate = false;
 
 #region PostgreSql Create
@@ -183,8 +183,8 @@ if (pgSqlRunAttemptInsertWithDuplicate)
     var trialId = pgSqlTrial.Id;
     var pgSqlCriteria = new Criteria
     {
-        Description = $"{nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Mainevent)}",
-        Type = CriteriaTypes.Mainevent,
+        Description = $"{nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.MainEvent)}",
+        Type = CriteriaTypes.MainEvent,
         TrialId = trialId
     };
     await pgSqlTrialEntityService.CreateCriteriaAsync(pgSqlCriteria);
@@ -207,8 +207,8 @@ if (mySqlRunAttemptInsertWithDuplicate)
     var trialId = mySqlTrial.Id;
     var mySqlCriteria = new Criteria
     {
-        Description = $"{nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Mainevent)}",
-        Type = CriteriaTypes.Mainevent,
+        Description = $"{nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.MainEvent)}",
+        Type = CriteriaTypes.MainEvent,
         TrialId = trialId
     };
     await mySqlTrialEntityService.CreateCriteriaAsync(mySqlCriteria);

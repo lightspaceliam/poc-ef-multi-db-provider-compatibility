@@ -36,11 +36,11 @@ public class OptimiserPgSqlDbContext : DbContext
         {
             //  Override the default name and case of database table and columns.
             //  HasConversion<string>() stores the enum member name ("Inclusion", "Exclusion",
-            //  "Mainevent") as varchar — no native PG enum type required, keeping the approach
+            //  "MainEvent") as varchar — no native PG enum type required, keeping the approach
             //  consistent with the MySql provider and entirely within OnModelCreating.
             entity.ToTable("criterias", t => t.HasCheckConstraint(
                 "ck_criterias_type",
-                "\"type\" IN ('Inclusion', 'Exclusion', 'Mainevent')"));
+                "\"type\" IN ('Inclusion', 'Exclusion', 'MainEvent')"));
             entity.Property(e => e.Id)
                 .HasColumnName("id");
             entity.HasKey(e => e.Id)

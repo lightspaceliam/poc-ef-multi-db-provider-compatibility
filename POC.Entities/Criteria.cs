@@ -1,14 +1,13 @@
 using System.ComponentModel.DataAnnotations;
-using NpgsqlTypes;
 using POC.Entities.Abstract;
 
 namespace POC.Entities;
 
 public enum CriteriaTypes
 {
-    [PgName("Inclusion")]  Inclusion,
-    [PgName("Exclusion")]  Exclusion,
-    [PgName("Mainevent")]  Mainevent,
+    Inclusion,
+    Exclusion,
+    MainEvent,
 }
 
 public class Criteria : EntityBase
