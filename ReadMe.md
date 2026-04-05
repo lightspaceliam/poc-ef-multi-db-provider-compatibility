@@ -1,5 +1,13 @@
 # POC Database Entity Framework
 
+I was recently engaged to migrate a project's database from MySQL to PostgreSQL, with Entity Framework already in place as the data access layer. My primary objective was to minimise disruption. That constraint led me to an idea: could I keep the entity models identical across both database providers, and push all provider specific configuration into the Fluent API of each respective DbContext?
+
+The answer was yes. This is a simplified example of that approach, focusing on Entity Framework's ability to target multiple database providers simultaneously while preserving:
+- Referential integrity
+- Unique constraints
+- Enum constraints
+
+
 ## Tech Stack
 
 - Entity Framework 9.0.11
@@ -26,12 +34,13 @@ New for me: everything in lowercase unless you want to wrap double quotes around
 
 ```sql
 -- mixed case
-SELECT  *
+SELECT  "Id"
+        , "Description" 
 FROM    "MyTableName"
 
 --  lowercase
 SELECT 	id
-		, description
+        , description
 FROM    mytable;
 ```
 
@@ -39,7 +48,7 @@ FROM    mytable;
 
 ```sql
 SELECT 	id
-		  , "description"
+        , "description"
 FROM    mytable;
 ```
 
@@ -81,9 +90,9 @@ Connection strings are stored:
 - POC.Entities\DbContexts\MySqlDbContextFactory.cs
 - POC.Entities\DbContexts\PgDbContextFactory.cs
 
-You will need .NET 9 and EF CLI 9.0.11 and run EF CLI commands:
+You will need .NET 9 and EF Core CLI 9.0.11 and run EF CLI commands:
 
-In this case I already had 10 installed and I needed to downgrade.
+In this case I already had EF Core 10 installed and I needed to downgrade since MySql is not yet compatible with .NET 10.
 
 ```bash
 # If you are using a newer version Also, check if there is a global.json in the solution root if encountering any issues
@@ -91,11 +100,11 @@ dotnet tool uninstall --global dotnet-ef
 dotnet tool install --global dotnet-ef --version 9.0.11
 
 
-# install if not already installed 
+# install if not already installed or you have a previous version 
 dotnet tool install --global dotnet-ef --version 9.0.11
 
 
-# Create the database and schema
+# Create the database and schema - migrations already created
 dotnet ef database update --context PgSqlDbContext
 dotnet ef database update --context MySqlDbContext
 ```
