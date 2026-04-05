@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using POC.Entities.DbContexts;
@@ -10,10 +11,12 @@ using POC.Entities.DbContexts;
 
 namespace POC.Entities.Migrations.PgSql
 {
-    [DbContext(typeof(OptimiserPgSqlDbContext))]
-    partial class OptimiserPgSqlDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(PgSqlDbContext))]
+    [Migration("20260405042805_Init")]
+    partial class Init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +25,7 @@ namespace POC.Entities.Migrations.PgSql
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("POC.Entities.Criteria", b =>
+            modelBuilder.Entity("POC.Entities.Identifier", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -30,38 +33,43 @@ namespace POC.Entities.Migrations.PgSql
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(75)
+                        .HasColumnType("character varying(75)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(4000)
                         .HasColumnType("character varying(4000)")
                         .HasColumnName("description");
 
-                    b.Property<int>("TrialId")
+                    b.Property<int>("PatientId")
                         .HasColumnType("integer")
-                        .HasColumnName("trial_id");
+                        .HasColumnName("patient_id");
 
-                    b.Property<string>("Type")
+                    b.Property<string>("Use")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
-                        .HasColumnName("type");
+                        .HasColumnName("use");
 
                     b.HasKey("Id")
-                        .HasName("trial_pkey");
+                        .HasName("identifiers_pkey");
 
-                    b.HasIndex("TrialId");
+                    b.HasIndex("PatientId");
 
-                    b.HasIndex("Type", "TrialId")
+                    b.HasIndex("Code", "Use", "PatientId")
                         .IsUnique()
-                        .HasDatabaseName("unique_pgsql_criteria_trial_id_criteria_type");
+                        .HasDatabaseName("unique_pgsql_identifier_code_use_patient_id");
 
-                    b.ToTable("criterias", null, t =>
+                    b.ToTable("identifiers", null, t =>
                         {
-                            t.HasCheckConstraint("ck_criterias_type", "\"type\" IN ('Inclusion', 'Exclusion', 'MainEvent')");
+                            t.HasCheckConstraint("ck_identifiers_code_use", "\"use\" IN ('Official', 'Secondary', 'Temp', 'Usual', 'Old')");
                         });
                 });
 
-            modelBuilder.Entity("POC.Entities.Trial", b =>
+            modelBuilder.Entity("POC.Entities.Patient", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -70,9 +78,9 @@ namespace POC.Entities.Migrations.PgSql
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("EndDate")
+                    b.Property<DateTime>("BirthDate")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("end_date");
+                        .HasColumnName("birth_date");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -80,29 +88,26 @@ namespace POC.Entities.Migrations.PgSql
                         .HasColumnType("character varying(150)")
                         .HasColumnName("name");
 
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("start_date");
+                    b.HasKey("Id")
+                        .HasName("patients_pkey");
 
-                    b.HasKey("Id");
-
-                    b.ToTable("trials", (string)null);
+                    b.ToTable("patients", (string)null);
                 });
 
-            modelBuilder.Entity("POC.Entities.Criteria", b =>
+            modelBuilder.Entity("POC.Entities.Identifier", b =>
                 {
-                    b.HasOne("POC.Entities.Trial", "Trial")
-                        .WithMany("Criterion")
-                        .HasForeignKey("TrialId")
+                    b.HasOne("POC.Entities.Patient", "Patient")
+                        .WithMany("Identifiers")
+                        .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Trial");
+                    b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("POC.Entities.Trial", b =>
+            modelBuilder.Entity("POC.Entities.Patient", b =>
                 {
-                    b.Navigation("Criterion");
+                    b.Navigation("Identifiers");
                 });
 #pragma warning restore 612, 618
         }

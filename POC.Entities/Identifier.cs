@@ -1,17 +1,30 @@
+
 using System.ComponentModel.DataAnnotations;
 using POC.Entities.Abstract;
 
 namespace POC.Entities;
 
-public enum CriteriaTypes
+public enum Use
 {
-    Inclusion,
-    Exclusion,
-    MainEvent,
+    Official,
+    Secondary,
+    Temp,
+    Usual,
+    Old
 }
 
-public class Criteria : EntityBase
+public class Identifier : EntityBase
 {
+    /// <summary>
+    /// Description
+    /// Constraints:
+    ///     Nullable
+    ///     Max length of 4000 characters
+    /// </summary>
+    [Required(ErrorMessage = "Code is required")]
+    [StringLength(75, ErrorMessage = "Code exceeds {1} characters")]
+    public string? Code { get; set; }
+    
     /// <summary>
     /// Description
     /// Constraints:
@@ -22,13 +35,13 @@ public class Criteria : EntityBase
     public string? Description { get; set; }
 
     /// <summary>
-    /// Type
+    /// Use
     /// Constraints:
     ///     Required
-    ///     Accepts only: Inclusion, Exclusion, Mainevent
+    ///     Accepts only: Official, Secondary, Temp, Usual, Old
     /// </summary>
-    [Required(ErrorMessage = "Type is required")]
-    public CriteriaTypes Type { get; set; }
+    [Required(ErrorMessage = "Use is required")]
+    public Use Use { get; set; }
 
     //  Navigational Properties.
 
@@ -39,6 +52,6 @@ public class Criteria : EntityBase
     ///     Required and must reference an existing trial primary key
     /// </summary>
     [Required(ErrorMessage = "Trial is required")]
-    public int TrialId { get; set; }
-    public Trial Trial { get; set; }
+    public int PatientId { get; set; }
+    public Patient Patient { get; set; }
 }

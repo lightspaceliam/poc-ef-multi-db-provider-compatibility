@@ -13,51 +13,51 @@ namespace POC.Entities.Migrations.PgSql
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "trials",
+                name: "patients",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
-                    start_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    end_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    birth_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_trials", x => x.id);
+                    table.PrimaryKey("patients_pkey", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "criterias",
+                name: "identifiers",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Code = table.Column<string>(type: "character varying(75)", maxLength: 75, nullable: false),
                     description = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true),
-                    type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    trial_id = table.Column<int>(type: "integer", nullable: false)
+                    use = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    patient_id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("trial_pkey", x => x.id);
-                    table.CheckConstraint("ck_criterias_type", "\"type\" IN ('Inclusion', 'Exclusion', 'MainEvent')");
+                    table.PrimaryKey("identifiers_pkey", x => x.id);
+                    table.CheckConstraint("ck_identifiers_code_use", "\"use\" IN ('Official', 'Secondary', 'Temp', 'Usual', 'Old')");
                     table.ForeignKey(
-                        name: "FK_criterias_trials_trial_id",
-                        column: x => x.trial_id,
-                        principalTable: "trials",
+                        name: "FK_identifiers_patients_patient_id",
+                        column: x => x.patient_id,
+                        principalTable: "patients",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_criterias_trial_id",
-                table: "criterias",
-                column: "trial_id");
+                name: "IX_identifiers_patient_id",
+                table: "identifiers",
+                column: "patient_id");
 
             migrationBuilder.CreateIndex(
-                name: "unique_pgsql_criteria_trial_id_criteria_type",
-                table: "criterias",
-                columns: new[] { "type", "trial_id" },
+                name: "unique_pgsql_identifier_code_use_patient_id",
+                table: "identifiers",
+                columns: new[] { "Code", "use", "patient_id" },
                 unique: true);
         }
 
@@ -65,10 +65,10 @@ namespace POC.Entities.Migrations.PgSql
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "criterias");
+                name: "identifiers");
 
             migrationBuilder.DropTable(
-                name: "trials");
+                name: "patients");
         }
     }
 }

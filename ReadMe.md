@@ -78,8 +78,8 @@ Please ensure both servers are available and work with the specified connection 
 Connection strings are stored:
 
 - POC.Harness\Program.cs
-- POC.Entities\DbContexts\OptimiserMySqlDbContextFactory.cs
-- POC.Entities\DbContexts\OptimiserPgDbContextFactory.cs
+- POC.Entities\DbContexts\MySqlDbContextFactory.cs
+- POC.Entities\DbContexts\PgDbContextFactory.cs
 
 You will need .NET 9 and EF CLI 9.0.11 and run EF CLI commands:
 
@@ -96,8 +96,8 @@ dotnet tool install --global dotnet-ef --version 9.0.11
 
 
 # Create the database and schema
-dotnet ef database update --context OptimiserPgSqlDbContext
-dotnet ef database update --context OptimiserMySqlDbContext
+dotnet ef database update --context PgSqlDbContext
+dotnet ef database update --context MySqlDbContext
 ```
 
 Highly recommend you install https://dbeaver.io/ to read both database schemas without having to swap IDE's.
@@ -110,24 +110,24 @@ In Terminal, PowerShell cd into: {your-directory}/poc-database-entity-framework/
 
 ```bash
 # Add a migration, select context and output directory
-dotnet ef migrations add Init --context OptimiserPgSqlDbContext --output-dir Migrations/PgSql
+dotnet ef migrations add Init --context PgSqlDbContext --output-dir Migrations/PgSql
 
 # Remove a migration
-dotnet ef migrations remove --context OptimiserPgSqlDbContext
+dotnet ef migrations remove --context PgSqlDbContext
 
 
-dotnet ef migrations add Init --context OptimiserMySqlDbContext --output-dir Migrations/MySql
+dotnet ef migrations add Init --context MySqlDbContext --output-dir Migrations/MySql
 
-# Add the database and schema based on the connection string in /POC.Entities\DbContexts\OptimiserPgDbContextFactory.cs
-dotnet ef database update --context OptimiserPgSqlDbContext
-dotnet ef database update --context OptimiserMySqlDbContext
+# Add the database and schema based on the connection string in /POC.Entities\DbContexts\{Db-Provider}DbContextFactory.cs
+dotnet ef database update --context PgSqlDbContext
+dotnet ef database update --context MySqlDbContext
 ```
 
 ![Schema diagram](./Assets/schema-diagram.png)
 
-1. a trial can have 0, 1 or many criteria
-2. a criteria must have 1 trial
-3. criteria must be unique by { trial_id, type }
+1. a patient can have 0, 1 or many identifiers
+2. a identifier must have 1 patient
+3. identifier must be unique by { code, use }
 
 ## Entity Framework Strategies
 
@@ -191,23 +191,25 @@ The most common question I hear when I talk about anything to do with EF is:
 
 
 ```c#
-return await _context.Trials
-    .Include(p => p.Criterion)
+return await _context.Patients
+    .Include(p => p.Identifiers)
     .ToListAsync();
 ```
 
 ```sql
 --  PostgreSql
-SELECT t.id, t.end_date, t.name, t.start_date, c.id, c.description, c.trial_id, c.type
-      FROM trials AS t
-      LEFT JOIN criterias AS c ON t.id = c.trial_id
-      ORDER BY t.id
+ SELECT p.id, p.birth_date, p.name, i.id, i."Code", i.description, i.patient_id, i.use
+      FROM patients AS p
+      LEFT JOIN identifiers AS i ON p.id = i.patient_id
+      ORDER BY p.id
+
 
 --  MySql
-SELECT `t`.`Id`, `t`.`EndDate`, `t`.`Name`, `t`.`StartDate`, `c`.`id`, `c`.`Description`, `c`.`TrialId`, `c`.`Type`
-      FROM `Trials` AS `t`
-      LEFT JOIN `Criterion` AS `c` ON `t`.`Id` = `c`.`TrialId`
-      ORDER BY `t`.`Id`
+SELECT `p`.`Id`, `p`.`BirthDate`, `p`.`Name`, `i`.`Id`, `i`.`Code`, `i`.`Description`, `i`.`PatientId`, `i`.`Use`
+      FROM `Patients` AS `p`
+      LEFT JOIN `Identifiers` AS `i` ON `p`.`Id` = `i`.`PatientId`
+      ORDER BY `p`.`Id`
+
 
 ```
 

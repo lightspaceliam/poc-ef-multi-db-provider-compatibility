@@ -7,25 +7,16 @@ using POC.Entities.DbContexts;
 
 namespace POC.Harness.Services;
 
-public class MySqlTrialEntityService
+public class MySqlPatientEntityService(
+    MySqlDbContext context,
+    ILogger<MySqlPatientEntityService> logger)
 {
-    private readonly OptimiserMySqlDbContext _context;
-    private readonly ILogger<MySqlTrialEntityService> _logger;
-
-    public MySqlTrialEntityService(
-        OptimiserMySqlDbContext context,
-        ILogger<MySqlTrialEntityService> logger)
-    {
-        _context = context;
-        _logger = logger;
-    }
-
-    public async Task<Trial> CreateAsync(Trial entity)
+    public async Task<Patient> CreateAsync(Patient entity)
     {
         try
         {
-            _context.Trials.Add(entity);
-            await _context.SaveChangesAsync();
+            context.Patients.Add(entity);
+            await context.SaveChangesAsync();
             return entity;
         }
         catch (Exception ex)
@@ -35,37 +26,37 @@ public class MySqlTrialEntityService
         }
     }
 
-    public async Task<List<Trial>> ReadAllAsync()
+    public async Task<List<Patient>> ReadAllAsync()
     {
-        return await _context.Trials
+        return await context.Patients
             .ToListAsync();
     }
 
-    public async Task<List<Trial>> ReadAllWithCriterionAsync()
+    public async Task<List<Patient>> ReadAllWithIdentifiersAsync()
     {
-        return await _context.Trials
-            .Include(p => p.Criterion)
+        return await context.Patients
+            .Include(p => p.Identifiers)
             .ToListAsync();
     }
 
-    public async Task<Trial?> FindTrialByNamAsync(string name)
+    public async Task<Patient?> FindPatientByNamAsync(string name)
     {
-        return await _context.Trials
-            .Include(p => p.Criterion)
+        return await context.Patients
+            .Include(p => p.Identifiers)
             .FirstOrDefaultAsync(p => p.Name == name);
     }
 
-    public async Task<Criteria> CreateCriteriaAsync(Criteria entity)
+    public async Task<Identifier> CreateIdentifierAsync(Identifier entity)
     {
         try
         {
-            _context.Criterion.Add(entity);
-            await _context.SaveChangesAsync();
+            context.Identifiers.Add(entity);
+            await context.SaveChangesAsync();
             return entity;
         }
         catch (Exception ex)
         {
-            HandleMySqlException(nameof(CreateCriteriaAsync), ex);
+            HandleMySqlException(nameof(CreateIdentifierAsync), ex);
             throw; // unreachable — HandleMySqlException always throws, satisfies compiler
         }
     }
@@ -91,7 +82,7 @@ public class MySqlTrialEntityService
 
             // EF DbUpdateException with no inner MySqlException
             case DbUpdateException dbEx:
-                _logger.LogError(dbEx,
+                logger.LogError(dbEx,
                     "EF DbUpdateException in {Operation} — no MySQL error code available",
                     operation);
                 ExceptionDispatchInfo.Capture(dbEx).Throw();
@@ -99,7 +90,7 @@ public class MySqlTrialEntityService
 
             // Cancellation token triggered by the caller
             case OperationCanceledException cancelEx:
-                _logger.LogWarning(cancelEx,
+                logger.LogWarning(cancelEx,
                     "{Operation} was cancelled by the caller",
                     operation);
                 ExceptionDispatchInfo.Capture(cancelEx).Throw();
@@ -107,14 +98,14 @@ public class MySqlTrialEntityService
 
             // Command or connection timeout
             case TimeoutException timeoutEx:
-                _logger.LogError(timeoutEx,
+                logger.LogError(timeoutEx,
                     "Timeout in {Operation}. Consider increasing CommandTimeout or checking server load",
                     operation);
                 ExceptionDispatchInfo.Capture(timeoutEx).Throw();
                 break;
 
             default:
-                _logger.LogError(ex,
+                logger.LogError(ex,
                     "Unexpected error in {Operation}",
                     operation);
                 ExceptionDispatchInfo.Capture(ex).Throw();
@@ -128,7 +119,7 @@ public class MySqlTrialEntityService
         {
             // 1045 — Access denied: wrong username or password
             case 1045:
-                _logger.LogError(
+                logger.LogError(
                     "MySQL access denied in {Operation}. " +
                     "Check connection string credentials. " +
                     "ErrorCode={ErrorCode} Message={Message}",
@@ -138,7 +129,7 @@ public class MySqlTrialEntityService
 
             // 1049 — Unknown database: database name does not exist
             case 1049:
-                _logger.LogError(
+                logger.LogError(
                     "MySQL database not found in {Operation}. " +
                     "ErrorCode={ErrorCode} Message={Message}",
                     operation, ex.Number, ex.Message);
@@ -147,7 +138,7 @@ public class MySqlTrialEntityService
 
             // 1146 — Table doesn't exist: migration not applied
             case 1146:
-                _logger.LogError(
+                logger.LogError(
                     "MySQL table or view does not exist in {Operation}. " +
                     "Has the migration been applied? " +
                     "ErrorCode={ErrorCode} Message={Message}",
@@ -157,7 +148,7 @@ public class MySqlTrialEntityService
 
             // 1054 — Unknown column: schema mismatch between model and database
             case 1054:
-                _logger.LogError(
+                logger.LogError(
                     "MySQL unknown column in {Operation} — possible schema mismatch. " +
                     "ErrorCode={ErrorCode} Message={Message}",
                     operation, ex.Number, ex.Message);
@@ -166,7 +157,7 @@ public class MySqlTrialEntityService
 
             // 1062 — Duplicate entry: unique key or primary key violation
             case 1062:
-                _logger.LogError(
+                logger.LogError(
                     "MySQL duplicate entry in {Operation}. " +
                     "ErrorCode={ErrorCode} Message={Message}",
                     operation, ex.Number, ex.Message);
@@ -177,7 +168,7 @@ public class MySqlTrialEntityService
             // 1452 — Cannot add or update a child row: foreign key constraint fails
             case 1216:
             case 1452:
-                _logger.LogError(
+                logger.LogError(
                     "MySQL foreign key constraint violation in {Operation}. " +
                     "ErrorCode={ErrorCode} Message={Message}",
                     operation, ex.Number, ex.Message);
@@ -186,7 +177,7 @@ public class MySqlTrialEntityService
 
             // 1048 — Column cannot be null
             case 1048:
-                _logger.LogError(
+                logger.LogError(
                     "MySQL not-null constraint violation in {Operation}. " +
                     "ErrorCode={ErrorCode} Message={Message}",
                     operation, ex.Number, ex.Message);
@@ -195,7 +186,7 @@ public class MySqlTrialEntityService
 
             // 1406 — Data too long for column
             case 1406:
-                _logger.LogError(
+                logger.LogError(
                     "MySQL data too long for column in {Operation}. " +
                     "ErrorCode={ErrorCode} Message={Message}",
                     operation, ex.Number, ex.Message);
@@ -206,7 +197,7 @@ public class MySqlTrialEntityService
             // 1130 — Host not allowed to connect
             case 1042:
             case 1130:
-                _logger.LogError(
+                logger.LogError(
                     "MySQL host connection error in {Operation}. " +
                     "ErrorCode={ErrorCode} Message={Message}",
                     operation, ex.Number, ex.Message);
@@ -215,7 +206,7 @@ public class MySqlTrialEntityService
 
             // 1040 — Too many connections
             case 1040:
-                _logger.LogError(
+                logger.LogError(
                     "MySQL server has too many connections in {Operation}. " +
                     "ErrorCode={ErrorCode} Message={Message}",
                     operation, ex.Number, ex.Message);
@@ -224,7 +215,7 @@ public class MySqlTrialEntityService
 
             // 1205 — Lock wait timeout exceeded
             case 1205:
-                _logger.LogError(
+                logger.LogError(
                     "MySQL lock wait timeout in {Operation}. " +
                     "ErrorCode={ErrorCode} Message={Message}",
                     operation, ex.Number, ex.Message);
@@ -233,7 +224,7 @@ public class MySqlTrialEntityService
 
             // 1213 — Deadlock found: transaction deadlock
             case 1213:
-                _logger.LogError(
+                logger.LogError(
                     "MySQL deadlock detected in {Operation}. " +
                     "ErrorCode={ErrorCode} Message={Message}",
                     operation, ex.Number, ex.Message);
@@ -244,7 +235,7 @@ public class MySqlTrialEntityService
             // 2003 — Can't connect to MySQL server on host
             case 2002:
             case 2003:
-                _logger.LogError(
+                logger.LogError(
                     "MySQL server unreachable in {Operation}. " +
                     "ErrorCode={ErrorCode} Message={Message}",
                     operation, ex.Number, ex.Message);
@@ -253,7 +244,7 @@ public class MySqlTrialEntityService
 
             // 2013 — Lost connection to server during query
             case 2013:
-                _logger.LogError(
+                logger.LogError(
                     "MySQL connection lost during {Operation}. " +
                     "ErrorCode={ErrorCode} Message={Message}",
                     operation, ex.Number, ex.Message);
@@ -261,7 +252,7 @@ public class MySqlTrialEntityService
                     $"Lost connection to MySQL server during {operation}. Check network stability and server timeout settings.", ex);
 
             default:
-                _logger.LogError(
+                logger.LogError(
                     "Unhandled MySQL error in {Operation}. " +
                     "ErrorCode={ErrorCode} SqlState={SqlState} Message={Message}",
                     operation, ex.Number, ex.SqlState, ex.Message);

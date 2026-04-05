@@ -10,8 +10,8 @@ using POC.Entities.DbContexts;
 
 namespace POC.Entities.Migrations.MySql
 {
-    [DbContext(typeof(OptimiserMySqlDbContext))]
-    partial class OptimiserMySqlDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(MySqlDbContext))]
+    partial class MySqlDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
@@ -22,39 +22,42 @@ namespace POC.Entities.Migrations.MySql
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("POC.Entities.Criteria", b =>
+            modelBuilder.Entity("POC.Entities.Identifier", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
+                        .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(75)
+                        .HasColumnType("varchar(75)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(4000)
                         .HasColumnType("varchar(4000)");
 
-                    b.Property<int>("TrialId")
+                    b.Property<int>("PatientId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Type")
+                    b.Property<string>("Use")
                         .IsRequired()
-                        .HasColumnType("enum('Inclusion','Exclusion','Mainevent')");
+                        .HasColumnType("enum('Official', 'Secondary', 'Temp', 'Usual', 'Old')");
 
-                    b.HasKey("Id")
-                        .HasName("trial_pkey");
+                    b.HasKey("Id");
 
-                    b.HasIndex("TrialId");
+                    b.HasIndex("PatientId");
 
-                    b.HasIndex("Type", "TrialId")
+                    b.HasIndex("Code", "Use", "PatientId")
                         .IsUnique()
-                        .HasDatabaseName("unique_mysql_criteria_trial_id_criteria_type");
+                        .HasDatabaseName("unique_mysql_identifier_code_use_patient_id");
 
-                    b.ToTable("Criterion");
+                    b.ToTable("Identifiers");
                 });
 
-            modelBuilder.Entity("POC.Entities.Trial", b =>
+            modelBuilder.Entity("POC.Entities.Patient", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -62,7 +65,7 @@ namespace POC.Entities.Migrations.MySql
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("EndDate")
+                    b.Property<DateTime>("BirthDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Name")
@@ -70,28 +73,25 @@ namespace POC.Entities.Migrations.MySql
                         .HasMaxLength(150)
                         .HasColumnType("varchar(150)");
 
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime(6)");
-
                     b.HasKey("Id");
 
-                    b.ToTable("Trials");
+                    b.ToTable("Patients");
                 });
 
-            modelBuilder.Entity("POC.Entities.Criteria", b =>
+            modelBuilder.Entity("POC.Entities.Identifier", b =>
                 {
-                    b.HasOne("POC.Entities.Trial", "Trial")
-                        .WithMany("Criterion")
-                        .HasForeignKey("TrialId")
+                    b.HasOne("POC.Entities.Patient", "Patient")
+                        .WithMany("Identifiers")
+                        .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Trial");
+                    b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("POC.Entities.Trial", b =>
+            modelBuilder.Entity("POC.Entities.Patient", b =>
                 {
-                    b.Navigation("Criterion");
+                    b.Navigation("Identifiers");
                 });
 #pragma warning restore 612, 618
         }

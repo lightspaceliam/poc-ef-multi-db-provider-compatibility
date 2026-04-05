@@ -16,55 +16,56 @@ namespace POC.Entities.Migrations.MySql
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Trials",
+                name: "Patients",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Name = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    StartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                    BirthDate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Trials", x => x.Id);
+                    table.PrimaryKey("PK_Patients", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Criterion",
+                name: "Identifiers",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Code = table.Column<string>(type: "varchar(75)", maxLength: 75, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "varchar(4000)", maxLength: 4000, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Type = table.Column<string>(type: "enum('Inclusion','Exclusion','Mainevent')", nullable: false)
+                    Use = table.Column<string>(type: "enum('Official', 'Secondary', 'Temp', 'Usual', 'Old')", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    TrialId = table.Column<int>(type: "int", nullable: false)
+                    PatientId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("trial_pkey", x => x.id);
+                    table.PrimaryKey("PK_Identifiers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Criterion_Trials_TrialId",
-                        column: x => x.TrialId,
-                        principalTable: "Trials",
+                        name: "FK_Identifiers_Patients_PatientId",
+                        column: x => x.PatientId,
+                        principalTable: "Patients",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Criterion_TrialId",
-                table: "Criterion",
-                column: "TrialId");
+                name: "IX_Identifiers_PatientId",
+                table: "Identifiers",
+                column: "PatientId");
 
             migrationBuilder.CreateIndex(
-                name: "unique_mysql_criteria_trial_id_criteria_type",
-                table: "Criterion",
-                columns: new[] { "Type", "TrialId" },
+                name: "unique_mysql_identifier_code_use_patient_id",
+                table: "Identifiers",
+                columns: new[] { "Code", "Use", "PatientId" },
                 unique: true);
         }
 
@@ -72,10 +73,10 @@ namespace POC.Entities.Migrations.MySql
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Criterion");
+                name: "Identifiers");
 
             migrationBuilder.DropTable(
-                name: "Trials");
+                name: "Patients");
         }
     }
 }

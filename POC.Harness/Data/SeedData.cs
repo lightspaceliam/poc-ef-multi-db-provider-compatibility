@@ -5,32 +5,30 @@ namespace POC.Harness.Data;
 
 public static class SeedData
 {
-    public static List<Trial> TrialsData(this string providerName)
+    public static List<Patient> TrialsData(this string providerName)
     {
         
-        return new List<Trial>
+        return new List<Patient>
         {
-            new Trial
+            new Patient
             {
-                Name = $"Trial One - Db: {providerName}",
-                StartDate = DateTime.SpecifyKind(DateTime.Parse("2026-04-01 09:00:00"), DateTimeKind.Utc),
-                EndDate = DateTime.SpecifyKind(DateTime.Parse("2026-04-01 10:00:00"), DateTimeKind.Utc),
-                Criterion = new List<Criteria>
+                Name = $"Luke Skywalker - Db: {providerName}",
+                BirthDate = new DateTime(1972, 1, 2, 0, 0, 0, DateTimeKind.Utc),
+                Identifiers = new List<Identifier>
                 {
-                    new Criteria{ Description = $"Db: {providerName}, {nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.MainEvent)}", Type = CriteriaTypes.MainEvent },
-                    new Criteria{ Description = $"Db: {providerName}, {nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Inclusion)}", Type = CriteriaTypes.Inclusion },
-                    new Criteria{ Description = $"Db: {providerName}, {nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Exclusion)}", Type = CriteriaTypes.Exclusion },
+                    new Identifier{ Code = "1", Description = $"Db: {providerName}, {nameof(Identifier)} => {nameof(Patient.Identifiers)} {nameof(Use.Official)}", Use = Use.Official },
+                    new Identifier{ Code = "2", Description = $"Db: {providerName}, {nameof(Identifier)} => {nameof(Patient.Identifiers)} {nameof(Use.Secondary)}", Use = Use.Secondary },
+                    new Identifier{ Code = "3", Description = $"Db: {providerName}, {nameof(Identifier)} => {nameof(Patient.Identifiers)} {nameof(Use.Official)}", Use = Use.Official },
                 }
             },
-            new Trial
+            new Patient
             {
-                Name = $"Trial Two - Db: {providerName}",
-                StartDate = DateTime.SpecifyKind(DateTime.Parse("2026-04-01 11:00:00"), DateTimeKind.Utc),
-                EndDate = DateTime.SpecifyKind(DateTime.Parse("2026-04-02 11:30:00"), DateTimeKind.Utc),
-                Criterion = new List<Criteria>
+                Name = $"Han Solo - Db: {providerName}",
+                BirthDate = new DateTime(1968, 2, 12, 0, 0, 0, DateTimeKind.Utc),
+                Identifiers = new List<Identifier>
                 {
-                    new Criteria{ Description = $"Db: {providerName}, {nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.MainEvent)}", Type = CriteriaTypes.MainEvent },
-                    new Criteria{ Description = $"Db: {providerName}, {nameof(Criteria)} => {nameof(Trial.Criterion)} {nameof(CriteriaTypes.Inclusion)}", Type = CriteriaTypes.Inclusion }
+                    new Identifier{ Code = "1", Description = $"Db: {providerName}, {nameof(Identifier)} => {nameof(Patient.Identifiers)} {nameof(Use.Official)}", Use = Use.Official },
+                    new Identifier{ Code = "2", Description = $"Db: {providerName}, {nameof(Identifier)} => {nameof(Patient.Identifiers)} {nameof(Use.Official)}", Use = Use.Official }
                 }
             }
         };
