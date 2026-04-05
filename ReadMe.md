@@ -136,9 +136,7 @@ dotnet ef database update --context MySqlDbContext
 
 1. a patient can have 0, 1 or many identifiers
 2. a identifier must have 1 patient
-3. identifier must be unique by { code, use }
-
-## Entity Framework Strategies
+3. identifier must be unique by { code, use patientId }
 
 ## Entity Framework Concepts
 
@@ -159,18 +157,18 @@ Constraints can be applied via **data annotations**, the **Fluent API**, or a co
 
 > Entity
 
-The entity (MyTable) is static and will reflect the table called MyTable in the database. This table will have columns called Col1, Col2 and more however, the entity should be compatible across database tech stacks: MySql, PostgreSql, MS Sql, ... so it is important to not be too opinionated at this level.
+The entity (MyTable) is static and will reflect the table called MyTable in the database. This table will have columns called Col1, Col2 and more however, the entity should be compatible across database providers: MySql, PostgreSql, MS Sql, ... so it is important to not be too opinionated at this level.
 
 > FluentAPI (class the inherits DbContext)
 
-**OnModelCreating:** is the right place for Database-Specific constraints
-OnModelCreating (inside the class that inherits DbContext) is where EF Core's Fluent API lives. Because it is configured per-context, it is naturally scoped to a specific database provider — MySQL, PostgreSQL, SQL Server, etc.
+**OnModelCreating:** is the right place for Database Specific constraints
+OnModelCreating (inside the class that inherits DbContext) is where EF Core's Fluent API lives. Because it is configured per context, it is naturally scoped to a specific database provider — MySQL, PostgreSQL, SQL Server, etc.
 
 This makes it the ideal place to define the majority of your table and column constraints, since you can tailor the configuration precisely to what your target database supports.
 
 > Bonus — Cross-Provider Portability via Data Annotations
 
-EF Core also supports a degree of provider-agnostic mapping through data annotations, which it translates automatically based on whichever provider package is installed.
+EF Core also supports a degree of provider agnostic mapping through data annotations, which it translates automatically based on whichever provider package is installed.
 
 Take EntityBase as an example:
 
@@ -183,7 +181,7 @@ public abstract class EntityBase : IEntity
     public int Id { get; set; }
 }
 ```
-The annotations [Key] and [DatabaseGenerated(DatabaseGeneratedOption.Identity)] carry no provider-specific meaning on their own. EF Core delegates the translation to the active provider package:
+The annotations [Key] and [DatabaseGenerated(DatabaseGeneratedOption.Identity)] carry no provider specific meaning on their own. EF Core delegates the translation to the active provider package:
 
 | Provider | Package | Generate SQL |
 |-|-|-|
@@ -198,13 +196,13 @@ The most common question I hear when I talk about anything to do with EF is:
 
 *It would be interesting to see how EF translates the query to TSQL*
 
-
+**Same query across Db providers:**
 ```c#
 return await _context.Patients
     .Include(p => p.Identifiers)
     .ToListAsync();
 ```
-
+**SQL Translation:**
 ```sql
 --  PostgreSql
  SELECT p.id, p.birth_date, p.name, i.id, i."Code", i.description, i.patient_id, i.use
@@ -212,14 +210,11 @@ return await _context.Patients
       LEFT JOIN identifiers AS i ON p.id = i.patient_id
       ORDER BY p.id
 
-
 --  MySql
 SELECT `p`.`Id`, `p`.`BirthDate`, `p`.`Name`, `i`.`Id`, `i`.`Code`, `i`.`Description`, `i`.`PatientId`, `i`.`Use`
       FROM `Patients` AS `p`
       LEFT JOIN `Identifiers` AS `i` ON `p`.`Id` = `i`.`PatientId`
       ORDER BY `p`.`Id`
-
-
 ```
 
 ## Docker
