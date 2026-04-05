@@ -34,7 +34,7 @@ public class MySqlDbContext : DbContext
                 .HasConversion<string>()
                 .HasColumnType("enum('Official', 'Secondary', 'Temp', 'Usual', 'Old')");
 
-            // Enforce unique constraint: a Trial cannot have Criteria with duplicate values by { TrialId, Type }.
+            // Enforce unique constraint: a Patient cannot have identifier/s with duplicate values by { PatientId, Code, Use }.
             entity.HasIndex(e => new { e.Code, e.Use, e.PatientId })
                 .IsUnique()
                 .HasDatabaseName("unique_mysql_identifier_code_use_patient_id");

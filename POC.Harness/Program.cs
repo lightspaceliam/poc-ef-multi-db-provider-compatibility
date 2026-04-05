@@ -14,15 +14,6 @@ Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
 Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT",     "Development");
 
 var host = Host.CreateDefaultBuilder(args)
-    // Setting DOTNET_ENVIRONMENT=Development (above) causes Host.CreateDefaultBuilder
-    // to enable ValidateOnBuild=true. That validation instantiates TrialPgDbContext
-    // to verify its options, which triggers the GlobalTypeMapper + HasPostgresEnum
-    // conflict and throws. Disable it — this is a utility, not a production service.
-    // .UseDefaultServiceProvider(options =>
-    // {
-    //     options.ValidateOnBuild = false;
-    //     options.ValidateScopes  = false;
-    // })
     .ConfigureAppConfiguration((context, config) =>
     {
         config.AddUserSecrets<Program>();
@@ -78,8 +69,8 @@ var host = Host.CreateDefaultBuilder(args)
     .Build();
 
 using var scope = host.Services.CreateScope();
-var pgSqlTrialEntityService = scope.ServiceProvider.GetRequiredService<PgSqlPatientEntityService>();
-var mySqlTrialEntityService = scope.ServiceProvider.GetRequiredService<MySqlPatientEntityService>();
+var pgSqlPatientEntityService = scope.ServiceProvider.GetRequiredService<PgSqlPatientEntityService>();
+var mySqlPatientEntityService = scope.ServiceProvider.GetRequiredService<MySqlPatientEntityService>();
 
 const bool pgSqlRunCreate = false;
 const bool pgSqlRunReadAllPatients = false;
@@ -95,9 +86,9 @@ const bool mySqlRunAttemptInsertWithDuplicate = true;
 
 if (pgSqlRunCreate)
 {
-    foreach (var trial in nameof(PgSqlDbContext).TrialsData())
+    foreach (var patient in nameof(PgSqlDbContext).PatientsData())
     {
-        await pgSqlTrialEntityService.CreateAsync(trial);
+        await pgSqlPatientEntityService.CreateAsync(patient);
     }
 }
 
@@ -107,73 +98,73 @@ if (pgSqlRunCreate)
 
 if (mySqlRunCreate)
 {
-    foreach (var trial in nameof(MySqlDbContext).TrialsData())
+    foreach (var patient in nameof(MySqlDbContext).PatientsData())
     {
-        await mySqlTrialEntityService.CreateAsync(trial);
+        await mySqlPatientEntityService.CreateAsync(patient);
     }
 }
 
 #endregion
 
-#region PostgreSql Read All Trials
+#region PostgreSql Read All Patients
 
 if (pgSqlRunReadAllPatients)
 {
-    var pgSqlTrials = await pgSqlTrialEntityService.ReadAllAsync();
+    var pgSqlPatients = await pgSqlPatientEntityService.ReadAllAsync();
 
-    pgSqlTrials.ForEach(trial =>
+    pgSqlPatients.ForEach(patient =>
     {
-        Console.WriteLine($"PgSql - Trial name: {trial.Name} Criterion: {trial.Identifiers.Count}");
+        Console.WriteLine($"PgSql - Patient name: {patient.Name} Identifiers: {patient.Identifiers.Count}");
     });
 }
 #endregion
 
-#region MySql Read All Trials
+#region MySql Read All Patients
 
 if (mySqlRunReadAllPatients)
 {
-    var mySqlTrials = await mySqlTrialEntityService.ReadAllAsync();
+    var mySqlPatients = await mySqlPatientEntityService.ReadAllAsync();
 
-    mySqlTrials.ForEach(trial =>
+    mySqlPatients.ForEach(patient =>
     {
-        Console.WriteLine($"MySql - Trial name: {trial.Name} Criterion: {trial.Identifiers.Count}");
+        Console.WriteLine($"MySql - Patient name: {patient.Name} Identifier: {patient.Identifiers.Count}");
     });
 }
 #endregion
 
-#region PostgreSql Read All Trials With Criterion
+#region PostgreSql Read All Patients With Identifiers
 
 if (pgSqlRunReadAllWithIdentifiers)
 {
-    var pgSqlTrials = await pgSqlTrialEntityService.ReadAllWithIdentifiersAsync();
+    var pgSqlPatients = await pgSqlPatientEntityService.ReadAllWithIdentifiersAsync();
 
-    pgSqlTrials.ForEach(trial =>
+    pgSqlPatients.ForEach(patient =>
     {
-        Console.WriteLine($"PgSql - Trial name: {trial.Name} Criterion: {trial.Identifiers.Count}");
+        Console.WriteLine($"PgSql - Patient name: {patient.Name} Identifiers: {patient.Identifiers.Count}");
     });
 }
 #endregion
 
-#region MySql Read All Trials With Criterion
+#region MySql Read All Patients With Identifiers
 
 if (mySqlRunReadAllWithIdentifiers)
 {
-    var mySqlTrials = await mySqlTrialEntityService.ReadAllWithIdentifiersAsync();
+    var mySqlPatients = await mySqlPatientEntityService.ReadAllWithIdentifiersAsync();
 
-    mySqlTrials.ForEach(trial =>
+    mySqlPatients.ForEach(patient =>
     {
-        Console.WriteLine($"MySql - Trial name: {trial.Name} Criterion: {trial.Identifiers.Count}");
+        Console.WriteLine($"MySql - Patient name: {patient.Name} Identifiers: {patient.Identifiers.Count}");
     });
 }
 #endregion
 
 #region PostgreSql Attempt Insert With Duplicate Type
 
-//  Expecting:  23505: duplicate key value violates unique constraint "unique_criteria_trial_id_criteria_type"
+//  Expecting to throw unique constraint exception "unique_pgsql_identifier_code_use_patient_id"
 
 if (pgSqlRunAttemptInsertWithDuplicate)
 {
-    var pgSqlPatient = await pgSqlTrialEntityService.FindPatientByNamAsync($"Luke Skywalker - Db: {nameof(PgSqlDbContext)}");
+    var pgSqlPatient = await pgSqlPatientEntityService.FindPatientByNamAsync($"Luke Skywalker - Db: {nameof(PgSqlDbContext)}");
 
     if (pgSqlPatient == null)
     {
@@ -181,24 +172,24 @@ if (pgSqlRunAttemptInsertWithDuplicate)
         return;
     }
     var patientId = pgSqlPatient.Id;
-    var pgSqlCriteria = new Identifier
+    var pgSqlIdentifier = new Identifier
     {
         Description = $"{nameof(Identifier)} => {nameof(Patient.Identifiers)} {nameof(Use.Official)}",
         Code = "1",
         Use = Use.Official,
         PatientId = patientId
     };
-    await pgSqlTrialEntityService.CreateIdentifierAsync(pgSqlCriteria);
+    await pgSqlPatientEntityService.CreateIdentifierAsync(pgSqlIdentifier);
 }
 #endregion Attempt Insert With Duplicate
 
 #region MySql Attempt Insert With Duplicate Type
 
-//  Expecting:  23505: duplicate key value violates unique constraint "unique_criteria_trial_id_criteria_type"
+//  Expecting to throw unique constraint exception "unique_mysql_identifier_code_use_patient_id"
 
 if (mySqlRunAttemptInsertWithDuplicate)
 {
-    var mySqlPatient = await mySqlTrialEntityService.FindPatientByNamAsync($"Luke Skywalker - Db: {nameof(MySqlDbContext)}");
+    var mySqlPatient = await mySqlPatientEntityService.FindPatientByNamAsync($"Luke Skywalker - Db: {nameof(MySqlDbContext)}");
 
     if (mySqlPatient == null)
     {
@@ -206,14 +197,14 @@ if (mySqlRunAttemptInsertWithDuplicate)
         return;
     }
     var patientId = mySqlPatient.Id;
-    var mySqlCriteria = new Identifier
+    var mySqlIdentifier = new Identifier
     {
         Description = $"{nameof(Identifier)} => {nameof(Patient.Identifiers)} {nameof(Use.Official)}",
         Code = "1",
         Use = Use.Official,
         PatientId = patientId
     };
-    await mySqlTrialEntityService.CreateIdentifierAsync(mySqlCriteria);
+    await mySqlPatientEntityService.CreateIdentifierAsync(mySqlIdentifier);
 }
 #endregion Attempt Insert With Duplicate
 

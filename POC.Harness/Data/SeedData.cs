@@ -1,11 +1,10 @@
-﻿using Microsoft.Extensions.Hosting;
-using POC.Entities;
+﻿using POC.Entities;
 
 namespace POC.Harness.Data;
 
 public static class SeedData
 {
-    public static List<Patient> TrialsData(this string providerName)
+    public static List<Patient> PatientsData(this string providerName)
     {
         
         return new List<Patient>

@@ -14,6 +14,6 @@ public class Patient : EntityBase
 
     //  Navigational Properties.
 
-    // A Patient can have 0, 1 or many Criterion mapped by a foreign key constraint.
+    // A Patient can have 0, 1 or many Identifiers mapped by a foreign key constraint.
     public List<Identifier> Identifiers { get; set; } = [];
 }

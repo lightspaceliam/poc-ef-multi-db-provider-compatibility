@@ -47,11 +47,11 @@ public class Identifier : EntityBase
 
     /// <summary>
     /// Foreign Key
-    ///     references Trial.Id
+    ///     references Patient.Id
     /// Constraints:
-    ///     Required and must reference an existing trial primary key
+    ///     Required and must reference an existing patient primary key
     /// </summary>
-    [Required(ErrorMessage = "Trial is required")]
+    [Required(ErrorMessage = "Patient is required")]
     public int PatientId { get; set; }
     public Patient Patient { get; set; }
 }
